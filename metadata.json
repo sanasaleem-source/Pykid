@@ -1,0 +1,6 @@
+{
+  "name": "PyKid",
+  "description": "Kid-friendly Python IDE and coding sandbox with turtle graphics, interactive sound, text-to-speech, and offline database storage.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

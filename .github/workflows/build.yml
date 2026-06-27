@@ -18,20 +18,34 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: "12266719"
+          log-accepted-android-sdk-licenses: false
 
-      - name: Accept licenses
-        run: yes | sdkmanager --licenses || true
+      - name: Accept SDK licenses
+        run: yes | sdkmanager --licenses 2>/dev/null || true
 
-      - name: Install SDK 36
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" || sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Install Android SDK 36 and build-tools
+        run: |
+          sdkmanager \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "platform-tools" \
+            --sdk_root=$ANDROID_SDK_ROOT 2>/dev/null || \
+          sdkmanager \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            "platform-tools" \
+            --sdk_root=$ANDROID_SDK_ROOT
 
       - name: Generate debug keystore
         run: |
           keytool -genkey -v \
-            -keystore ${{ github.workspace }}/debug.keystore \
+            -keystore "${{ github.workspace }}/debug.keystore" \
             -alias androiddebugkey \
             -keyalg RSA \
             -keysize 2048 \
@@ -44,13 +58,15 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: PyKid-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
+
